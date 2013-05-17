@@ -28,7 +28,6 @@ class AutoScale():
         self.security_group = cluster['security_group']
         self.provider = config_details['provider']
         self.load_balancer = config_details['load_balancer']
-        self.check_func = None
         self.health_check_url = None
         try:
             if len(cluster['health_check_url']) > 0:
@@ -40,49 +39,71 @@ class AutoScale():
         self.instance_properties.ami = cluster['ami']
         self.instance_properties.type = cluster['node_type']
 
-    def start(self):
+    def run(self):
+        logging.info('In run()')
         while True:
-            if self.check_func is not None:
-                self._action(self.check_func)
-            else:
-                self._action(self._check_cpu_utilization())
-            instances = self.provider.get_instances(self.security_group)
+            logging.info('Checking to scale...')
+            self._action(self._check_cpu_utilization())
+            logging.info('Modifying load balancer...')
+            instances = self._get_instances()
             self.load_balancer.setInstances(instances)
             self.load_balancer.reloadConfiguration()
+            logging.info('Starting health check...')
             self._healthCheck()
+            logging.info('Waiting until next scale check..')
             time.sleep(self.cooltime * 60)
 
+    def _get_instances(self):
+        if self.instances is None:
+            self.instances = self.provider.get_instances(self.security_group)
+        return self.instances
+
     def _check_cpu_utilization(self):
-        instances = self.provider.get_instances(self.security_group)
+        logging.info('In _check_cpu_utilization()')
+        logging.info('Getting instance list for %s' % self.security_group)
+        instances = self._get_instances()
         instanceCount = len(instances)
+        logging.info('Got %s instances in list' % instanceCount)
         try:
             value = self.provider.cpu_utilization(instances)
         except ScaleError:
-            return State.NORMAL
+            cluster_state = State.NORMAL
+
+        logging.info('Computing cluster state..')
         if self.min_nodes > instanceCount:
-            return State.SCALE_OUT
+            cluster_state = State.SCALE_OUT
         elif value > self.scale_out_threshold:
             if self.max_nodes <= instanceCount:
-                return State.MAX_LIMIT
-            return State.SCALE_OUT
+                cluster_state = State.MAX_LIMIT
+            else:
+                cluster_state = State.SCALE_OUT
         elif value < self.scale_out_threshold * self.scale_down_ratio:
             if self.min_nodes >= instanceCount:
-                return State.MIN_LIMIT
-            return State.SCALE_DOWN
-        return State.NORMAL
+                cluster_state = State.MIN_LIMIT
+            else:
+                cluster_state = State.SCALE_DOWN
+
+        logging.info('Cluster state is %s' % cluster_state)
+        return cluster_state
 
     def _action(self, state):
         if state == State.SCALE_OUT:
+            logging.info('Modifying cluster..')
             if self.node_option == 'on-demand':
+                logging.info('Creating on-demand instance...')
                 self.provider.launch_instance(self.instance_properties)
+                logging.info('Done')
             elif self.node_option == 'spot':
+                logging.info('Creating spot instance..')
                 self.provider.launch_spot_instance(self.instance_properties)
+                logging.info('Done')
             else:
                 raise InvalidPricingOption(self.node_option)
         elif state == State.SCALE_DOWN:
+            logging.info('Scaling out cluster.')
             if self.node_option == 'on-demand':
-                for instance in self.provider.get_instances(
-                                                        self.security_group):
+                logging.info('Removing on-demand instance...')
+                for instance in self._get_instances():
                     try:
                         instance.terminate()
                     except:
@@ -91,9 +112,10 @@ class AutoScale():
                         break
                 else:
                     raise InstanceTerminationFailed()
+                logging.info('Done')
             elif self.node_option == 'spot':
-                for instance in self.provider.get_instances(
-                                                        self.security_group):
+                logging.info('Removing spot instance...')
+                for instance in self._get_instances():
                     try:
                         instance.terminate()
                         if instance.spot_instance_request_id is not None:
@@ -107,14 +129,15 @@ class AutoScale():
                         break
                 else:
                     raise InstanceTerminationFailed()
+                logging.info('Done')
             else:
                 raise InvalidPricingOption(self.node_option)
         elif state == State.MAX_LIMIT:
-            pass
+            logging.info('Nothing to do.')
         elif state == State.MIN_LIMIT:
-            pass
+            logging.info('Nothing to do.')
         elif state == State.NORMAL:
-            pass
+            logging.info('Nothing to do.')
         else:
             raise InvalidStateError(state)
 
@@ -130,3 +153,5 @@ class AutoScale():
                 # Assign the EIP to self.
                 logging.warn('Health check failed.')
                 print("Health check failed!!")
+        else:
+            logging.info('Health check URL not specified. Skipping')

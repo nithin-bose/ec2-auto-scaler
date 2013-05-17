@@ -1,9 +1,10 @@
-import Providers
+import logging
 from datetime import timedelta
 from datetime import datetime
 from boto import ec2
 from boto.ec2 import cloudwatch
 from errors import ScaleError
+import Providers
 
 
 class AWS(Providers):
@@ -116,8 +117,11 @@ class AWS(Providers):
             return instance
 
     def cpu_utilization(self, instances, minutes=10):
+        logging.info('In cpu_utilization()')
+        logging.info('Getting cloudwatch connection')
         conn = self.get_cloudwatch_connection()
         stat_sum = 0.0
+        logging.info('Getting CPU Utilization for instances in list')
         for instance in instances:
             stats = conn.get_metric_statistics(
                         period=60,
@@ -132,4 +136,6 @@ class AWS(Providers):
                 stat_sum += sum(stat['Average'] for stat in stats) / len(stats)
             else:
                 raise ScaleError('Stat semms empty.')
-        return stat_sum / len(instances)
+        avg_cluster_utilization = stat_sum / len(instances)
+        logging.info('Avg cluster utilization is %s' % avg_cluster_utilization)
+        return avg_cluster_utilization

@@ -1,4 +1,5 @@
 import argparse
+import logging
 from autoscaling import AutoScale
 from constants import APPLICATION_NAME, DEFAULT_CONFIG_PATH
 from configuration import Configuration
@@ -6,17 +7,23 @@ from configuration import Configuration
 
 def main():
     print (APPLICATION_NAME)
+    logging.info('Application started')
     parser = argparse.ArgumentParser(description=APPLICATION_NAME)
     parser.add_argument('--config', default=DEFAULT_CONFIG_PATH)
     args = parser.parse_args()
+    logging.info('Parsing configuration')
     configuration = Configuration(args.config)
+    logging.info('Fetching configuration details')
     config_details = configuration.get_config_details()
     for cluster in config_details['clusters']:
+        logging.info('Initializing auto scale')
         auto_scale = AutoScale(cluster, config_details)
-        auto_scale.start()
+        logging.info('Running auto scale')
+        auto_scale.run()
 
 if __name__ == '__main__':
     try:
+        logging.getLogger().setLevel(logging.INFO)
         main()
     except Exception as e:
         print(e)

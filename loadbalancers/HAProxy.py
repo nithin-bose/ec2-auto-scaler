@@ -36,7 +36,7 @@ class HAProxy(LoadBalancers):
 
     def reloadConfiguration(self):
         # Generate the new config from the template.
-        logging.info('Generating configuration for haproxy.')
+        logging.info('Generating new configuration for haproxy.')
         new_configuration = self._generate_haproxy_config()
 
         # See if this new config is different. If it is then restart using it.
@@ -52,7 +52,7 @@ class HAProxy(LoadBalancers):
                           content=new_configuration)
             self._restartLoadBalancer()
         else:
-            logging.info('Configuration unchanged. Skipping restart.')
+            logging.info('Configuration unchanged. Nothing to do.')
 
     def _restartLoadBalancer(self):
         # Get PID if haproxy is already running.
@@ -60,8 +60,9 @@ class HAProxy(LoadBalancers):
         pid = self.file_contents(filename=self.pIdFile)
 
         # Restart haproxy.
-        logging.info('Restarting haproxy.')
+        logging.info('Restarting haproxy...')
         command = '''%s -p %s -f %s -sf %s''' % (self.executable, self.pIdFile,
                                                 self.configFilename, pid or '')
         logging.info('Executing: %s' % command)
         subprocess.call(command, shell=True)
+        logging.info('Done')
