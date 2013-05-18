@@ -8,9 +8,9 @@ from errors import InstancesNotSetError
 class HAProxy(LoadBalancers):
 
     CONFIG_TPL_PATH = './templates/HAProxy.tpl'
-    CONFIG_FILE_PATH = 'haproxy.cfg'
+    CONFIG_FILE_PATH = 'bin/haproxy.cfg'
     LB_PID_FILE_PATH = '/var/run/haproxy.pid'
-    LB_EXECUTABLE = './haproxy'
+    LB_EXECUTABLE = 'bin/haproxy'
 
     def __init__(self, template=CONFIG_TPL_PATH, filename=CONFIG_FILE_PATH,
                         pIdFile=LB_PID_FILE_PATH, executable=LB_EXECUTABLE):

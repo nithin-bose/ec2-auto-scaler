@@ -24,7 +24,6 @@ class AutoScale():
         self.node_option = cluster['node_option']
         self.min_nodes = cluster['min_nodes']
         self.max_nodes = cluster['max_nodes']
-        self.cooltime = cluster['cooltime']
         self.security_group = cluster['security_group']
         self.provider = config_details['provider']
         self.load_balancer = config_details['load_balancer']
@@ -41,17 +40,15 @@ class AutoScale():
 
     def run(self):
         logging.info('In run()')
-        while True:
-            logging.info('Checking to scale...')
-            self._action(self._check_cpu_utilization())
-            logging.info('Modifying load balancer...')
-            instances = self._get_instances()
-            self.load_balancer.setInstances(instances)
-            self.load_balancer.reloadConfiguration()
-            logging.info('Starting health check...')
-            self._healthCheck()
-            logging.info('Waiting until next scale check..')
-            time.sleep(self.cooltime * 60)
+        logging.info('Checking to scale...')
+        self._action(self._check_cpu_utilization())
+        logging.info('Modifying load balancer...')
+        instances = self._get_instances()
+        self.load_balancer.setInstances(instances)
+        self.load_balancer.reloadConfiguration()
+        logging.info('Starting health check...')
+        self._healthCheck()
+        logging.info('Scaling complete')
 
     def _get_instances(self):
         if self.instances is None:
