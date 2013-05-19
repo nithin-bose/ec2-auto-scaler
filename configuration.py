@@ -46,5 +46,26 @@ class Configuration():
                                                 secret_access_key, region_name)
 
         if self.parsed_config['main']['load_balancer'] == 'haproxy':
-            config_details['load_balancer'] = HAProxy()
+            try:
+                executable = self.parsed_config['haproxy']['executable']
+            except:
+                executable = None
+
+            try:
+                pid_file = self.parsed_config['haproxy']['pid_file']
+            except:
+                pid_file = None
+
+            try:
+                config_file = self.parsed_config['haproxy']['config_file']
+            except:
+                config_file = None
+
+            try:
+                config_tpl = self.parsed_config['haproxy']['config_tpl']
+            except:
+                config_tpl = None
+
+            config_details['load_balancer'] = HAProxy(config_tpl,
+                                            config_file, pid_file, executable)
         return config_details

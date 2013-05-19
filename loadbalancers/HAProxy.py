@@ -8,17 +8,25 @@ from errors import InstancesNotSetError
 class HAProxy(LoadBalancers):
 
     CONFIG_TPL_PATH = './templates/HAProxy.tpl'
-    CONFIG_FILE_PATH = 'bin/haproxy.cfg'
+    CONFIG_FILE_PATH = 'example/haproxy.cfg'
     LB_PID_FILE_PATH = '/var/run/haproxy.pid'
-    LB_EXECUTABLE = 'bin/haproxy'
+    LB_EXECUTABLE = 'haproxy'
 
-    def __init__(self, template=CONFIG_TPL_PATH, filename=CONFIG_FILE_PATH,
-                        pIdFile=LB_PID_FILE_PATH, executable=LB_EXECUTABLE):
+    def __init__(self, config_template=None, config_file=None, pIdFile=None,
+                                                            executable=None):
+        self.templateFile = self.CONFIG_TPL_PATH
+        self.configFilename = self.CONFIG_FILE_PATH
+        self.pIdFile = self.LB_PID_FILE_PATH
+        self.executable = self.LB_EXECUTABLE
 
-        self.templateFile = template
-        self.configFilename = filename
-        self.pIdFile = pIdFile
-        self.executable = executable
+        if config_template is not None:
+            self.templateFile = config_template
+        if config_file is not None:
+            self.configFilename = config_file
+        if pIdFile is not None:
+            self.pIdFile = pIdFile
+        if executable is not None:
+            self.executable = executable
         self.instances = None
 
     def setInstances(self, instances):
