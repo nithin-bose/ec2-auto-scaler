@@ -7,4 +7,3 @@ lib*
 build
 templates/testing.tpl
 local
-haproxy.cfg
