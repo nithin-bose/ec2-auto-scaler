@@ -44,3 +44,19 @@ class InstancesNotSetError(Exception):
 
     def __str__(self):
         return self.message
+
+
+class InstanceLaunchTimeOut(Exception):
+    def __init__(self):
+        self.message = 'Timed out. Cannot launch instance.'
+
+    def __str__(self):
+        return self.message
+
+
+class SpotRequestTimeOut(Exception):
+    def __init__(self):
+        self.message = 'Timed out. Cannot complete spot request.'
+
+    def __str__(self):
+        return self.message

@@ -1,9 +1,10 @@
 import logging
 from datetime import timedelta
 from datetime import datetime
+import time
 from boto import ec2
 from boto.ec2 import cloudwatch
-from errors import ScaleError
+from errors import ScaleError, InstanceLaunchTimeOut, SpotRequestTimeOut
 from providers import Providers
 
 
@@ -55,13 +56,18 @@ class AWS(Providers):
 
     def wait_for_run(self, instance, timeout=60, interval=5):
         trial = timeout / interval
+        logging.info('Waiting for instance to launch...')
         for _ in xrange(trial):
             instance.update()
+            logging.info('Checking... Current State: %s', instance.state)
             if instance.state == 'running':
+                logging.info('Instance running')
                 break
+            time.sleep(interval)
         else:
+            logging.error('Cancelling launch due to time out.')
             instance.terminate()
-            raise ScaleError('Timed out. Cannot launch instance.')
+            raise InstanceLaunchTimeOut()
         return instance
 
     def launch_instance(self, instance_properties):
@@ -95,20 +101,26 @@ class AWS(Providers):
         logging.info('Spot price seems to be: %s' % spot_price)
         return spot_price
 
-    def wait_for_fulfill(self, request, timeout=300, interval=15):
+    def wait_for_fulfill(self, request, timeout=3000, interval=15):
         trial = timeout / interval
+        logging.info('Waiting for request to complete...')
         for _ in xrange(trial):
             request = self.get_spot_request_by_id(request.id)
+            logging.info('Checking... Current State: %s', request.state)
             if request.state == 'active':
+                logging.info('Spot request active')
                 break
+            time.sleep(interval)
         else:
+            logging.error('Cancelling spot request due to time out.')
             request.cancel()
-            raise ScaleError('Timed out. Cannot launch spot instance.')
+            raise SpotRequestTimeOut()
         return request
 
     def launch_spot_instance(self, instance_properties):
         conn = self.get_connection()
         price = self.spot_price(instance_properties) * 3
+        logging.info('Requesting spot instance with bid %s ' % price)
         requests = conn.request_spot_instances(
                     price=price,
                     image_id=instance_properties.ami,
