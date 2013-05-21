@@ -1,4 +1,3 @@
-import time
 import logging
 import urllib2
 from errors import ScaleError, InvalidPricingOption, \
