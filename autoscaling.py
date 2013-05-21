@@ -18,11 +18,11 @@ class Collection():
 
 class AutoScale():
     def __init__(self, cluster, config_details):
-        self.scale_out_threshold = cluster['scale_out_threshold']
-        self.scale_down_ratio = cluster['scale_down_ratio']
+        self.scale_out_threshold = float(cluster['scale_out_threshold'])
+        self.scale_down_ratio = float(cluster['scale_down_ratio'])
         self.node_option = cluster['node_option']
-        self.min_nodes = cluster['min_nodes']
-        self.max_nodes = cluster['max_nodes']
+        self.min_nodes = float(cluster['min_nodes'])
+        self.max_nodes = float(cluster['max_nodes'])
         self.security_group = cluster['security_group']
         self.provider = config_details['provider']
         self.load_balancer = config_details['load_balancer']
@@ -68,31 +68,46 @@ class AutoScale():
         instances = self._get_instances()
         instanceCount = len(instances)
         try:
-            value = self.provider.cpu_utilization(instances)
+            cpu_utilization = self.provider.cpu_utilization(instances)
         except ScaleError:
             cluster_state = State.NORMAL
 
         logging.info('Computing cluster state..')
         if self.min_nodes > instanceCount:
+            logging.info('min_nodes(%s) > instanceCount(%s)' %
+                                            (self.min_nodes, instanceCount))
             cluster_state = State.SCALE_OUT
-        elif value > self.scale_out_threshold:
+        elif cpu_utilization > self.scale_out_threshold:
+            logging.info('cpu_utilization(%s) > scale_out_threshold(%s)' %
+                                (cpu_utilization, self.scale_out_threshold))
             if self.max_nodes <= instanceCount:
+                logging.info('max_nodes(%s) <= instanceCount(%s)' %
+                                            (self.max_nodes, instanceCount))
                 cluster_state = State.MAX_LIMIT
             else:
+                logging.info('max_nodes(%s) > instanceCount(%s)' %
+                                            (self.max_nodes, instanceCount))
                 cluster_state = State.SCALE_OUT
-        elif value < self.scale_out_threshold * self.scale_down_ratio:
+        elif cpu_utilization < self.scale_out_threshold * self.scale_down_ratio:
+            logging.info('cpu_util(%s) < scle_ot_thrshld(%s)*scle_dwn_rtio(%s)'
+          % (cpu_utilization, self.scale_out_threshold, self.scale_down_ratio))
             if self.min_nodes >= instanceCount:
+                logging.info('min_nodes(%s) >= instanceCount(%s)' %
+                                            (self.min_nodes, instanceCount))
                 cluster_state = State.MIN_LIMIT
             else:
+                logging.info('min_nodes(%s) < instanceCount(%s)' %
+                                            (self.min_nodes, instanceCount))
                 cluster_state = State.SCALE_DOWN
 
         logging.info('Cluster state is %s' % cluster_state)
         return cluster_state
 
     def _action(self, state):
+        logging.info('Modifying cluster..')
         if state == State.SCALE_OUT:
             self.instances = None
-            logging.info('Modifying cluster..')
+            logging.info('Scaling out the cluster.')
             if self.node_option == 'on-demand':
                 logging.info('Creating on-demand instance...')
                 self.provider.launch_instance(self.instance_properties)
@@ -105,7 +120,7 @@ class AutoScale():
                 raise InvalidPricingOption(self.node_option)
         elif state == State.SCALE_DOWN:
             self.instances = None
-            logging.info('Scaling out cluster.')
+            logging.info('Scaling down the cluster.')
             if self.node_option == 'on-demand':
                 logging.info('Removing on-demand instance...')
                 for instance in self._get_instances():
@@ -119,16 +134,18 @@ class AutoScale():
                     raise InstanceTerminationFailed()
                 logging.info('Done')
             elif self.node_option == 'spot':
-                logging.info('Removing spot instance...')
                 for instance in self._get_instances():
                     try:
-                        instance.terminate()
                         if instance.spot_instance_request_id is not None:
+                            logging.info('Cancelling spot request...')
                             spot_request_id = instance.spot_instance_request_id
                             self.provider.get_spot_request_by_id(
                                                      spot_request_id).cancel()
+                        logging.info('Terminating spot instance...')
+                        instance.terminate()
                         instance.update()
                     except:
+                        logging.info('Exception. Will remove another instance')
                         continue
                     else:
                         break
@@ -157,6 +174,5 @@ class AutoScale():
             except:
                 # Assign the EIP to self.
                 logging.warn('Health check failed.')
-                print("Health check failed!!")
         else:
             logging.info('Health check URL not specified. Skipping')

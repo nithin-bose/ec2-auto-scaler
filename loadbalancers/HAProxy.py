@@ -50,7 +50,7 @@ class HAProxy(LoadBalancers):
         # See if this new config is different. If it is then restart using it.
         # Otherwise just delete the temporary file and do nothing.
         logging.info('Comparing to existing configuration.')
-        old_configuration = self.file_contents(self.configFilename)
+        old_configuration = self.file_contents(filename=self.configFilename)
         if new_configuration != old_configuration:
             logging.info('Existing configuration is outdated.')
 
