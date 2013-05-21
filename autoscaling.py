@@ -27,6 +27,7 @@ class AutoScale():
         self.security_group = cluster['security_group']
         self.provider = config_details['provider']
         self.load_balancer = config_details['load_balancer']
+        self.instances = None
         self.health_check_url = None
         try:
             if len(cluster['health_check_url']) > 0:
@@ -57,10 +58,8 @@ class AutoScale():
 
     def _check_cpu_utilization(self):
         logging.info('In _check_cpu_utilization()')
-        logging.info('Getting instance list for %s' % self.security_group)
         instances = self._get_instances()
         instanceCount = len(instances)
-        logging.info('Got %s instances in list' % instanceCount)
         try:
             value = self.provider.cpu_utilization(instances)
         except ScaleError:

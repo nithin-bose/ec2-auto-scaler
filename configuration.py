@@ -31,7 +31,7 @@ class Configuration():
     def get_config_details(self):
         config_details = {}
         clusters = []
-        for index, cluster in self.parsed_config:
+        for index, cluster in self.parsed_config.iteritems():
             if index not in NON_CLUSTER_SECTIONS:
                 clusters.append(cluster)
                 region_name = cluster['region_name']

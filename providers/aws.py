@@ -4,7 +4,7 @@ from datetime import datetime
 from boto import ec2
 from boto.ec2 import cloudwatch
 from errors import ScaleError
-import Providers
+from providers import Providers
 
 
 class AWS(Providers):
@@ -12,10 +12,13 @@ class AWS(Providers):
         self._ec2_conn = ec2.connect_to_region(region_name,
                                             aws_access_key_id=access_key_id,
                                     aws_secret_access_key=secret_access_key)
+        logging.info('Initialized aws connection to %s' % region_name)
 
         self._cloudwatch_conn = cloudwatch.connect_to_region(region_name,
                                             aws_access_key_id=access_key_id,
                                     aws_secret_access_key=secret_access_key)
+        logging.info('Initialized cloud watch connection to %s' % region_name)
+
         self._region_name = region_name
 
     def get_connection(self):
@@ -30,14 +33,17 @@ class AWS(Providers):
         instances = [inst for resv in reservations
                               for inst in resv.instances
                                   if inst.state == 'running']
+        logging.info('Found %s running instances' % len(instances))
         if security_group is not None:
+            logging.info('looking for instances in sg:%s...' % security_group)
             instances_in_security_group = []
             for inst in instances:
                 groups = []
                 for group in inst.groups:
-                    groups.append(group)
+                    groups.append(group.name)
                 if security_group in groups:
                     instances_in_security_group.append(inst)
+        logging.info('Found %s instances' % len(instances_in_security_group))
         return instances_in_security_group
 
     def get_instance_by_id(self, id):
@@ -85,7 +91,9 @@ class AWS(Providers):
                     instance_type=instance_properties.type,
                     product_description='Linux/UNIX',
                     availability_zone=self._region_name)
-        return sum(price.price for price in prices) / len(prices)
+        spot_price = sum(price.price for price in prices) / len(prices)
+        logging.info('Spot price seems to be: %s' % spot_price)
+        return spot_price
 
     def wait_for_fulfill(self, request, timeout=300, interval=15):
         trial = timeout / interval

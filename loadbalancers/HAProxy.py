@@ -1,7 +1,7 @@
 import logging
 import subprocess
 from mako.template import Template
-import LoadBalancers
+from loadbalancers import LoadBalancers
 from errors import InstancesNotSetError
 
 

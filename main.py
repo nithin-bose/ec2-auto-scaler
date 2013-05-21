@@ -1,5 +1,6 @@
 import argparse
 import logging
+import traceback
 from autoscaling import AutoScale
 from constants import APPLICATION_NAME, DEFAULT_CONFIG_PATH
 from configuration import Configuration
@@ -26,4 +27,4 @@ if __name__ == '__main__':
         logging.getLogger().setLevel(logging.INFO)
         main()
     except Exception as e:
-        print(e)
+        traceback.print_exc()
