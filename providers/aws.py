@@ -74,7 +74,8 @@ class AWS(Providers):
         conn = self.get_connection()
         resv = conn.run_instances(instance_properties.ami,
                                   instance_type=instance_properties.type,
-                            placement=instance_properties.availability_zone)
+                          security_groups=[instance_properties.security_group],
+                          placement=instance_properties.availability_zone)
         for instance in resv.instances:
             self.wait_for_run(instance)
             conn.create_tags([instance.id],
@@ -126,6 +127,7 @@ class AWS(Providers):
                     image_id=instance_properties.ami,
                     count=1,
                     instance_type=instance_properties.type,
+                    security_groups=[instance_properties.security_group],
                     placement=instance_properties.availability_zone)
         for request in requests:
             request = self.wait_for_fulfill(request)
