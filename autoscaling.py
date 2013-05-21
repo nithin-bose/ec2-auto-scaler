@@ -47,6 +47,8 @@ class AutoScale():
         self._action(self._check_cpu_utilization())
         logging.info('Modifying load balancer...')
         instances = self._get_instances()
+        instanceCount = len(instances)
+        logging.info('%s instances: %s' % (self.security_group, instanceCount))
         self.load_balancer.setInstances(instances)
         self.load_balancer.reloadConfiguration()
         logging.info('Starting health check...')
@@ -54,6 +56,7 @@ class AutoScale():
         logging.info('Scaling complete')
 
     def _get_instances(self):
+        logging.info('Getting instance list...')
         if self.instances is None:
             logging.info('Instances list seems to have changed. Refreshing...')
             self.instances = self.provider.get_instances(self.security_group)
