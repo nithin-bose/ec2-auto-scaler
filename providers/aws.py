@@ -78,7 +78,7 @@ class AWS(Providers):
         for instance in resv.instances:
             self.wait_for_run(instance)
             conn.create_tags([instance.id],
-                             {'Name': instance_properties.name})
+                             {'Name': 'auto-' + str(datetime.now())})
             instance.update()
             return instance
 
@@ -132,7 +132,7 @@ class AWS(Providers):
             instance = self.get_instance_by_id(request.instance_id)
             self.wait_for_run(instance)
             conn.create_tags([instance.id],
-                             {'Name': instance_properties.name})
+                             {'Name': 'auto-' + str(datetime.now())})
             instance.update()
             return instance
 
