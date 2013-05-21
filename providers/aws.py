@@ -68,7 +68,7 @@ class AWS(Providers):
         conn = self.get_connection()
         resv = conn.run_instances(instance_properties.ami,
                                   instance_type=instance_properties.type,
-                                placement=instance_properties.availabilty_zone)
+                            placement=instance_properties.availability_zone)
         for instance in resv.instances:
             self.wait_for_run(instance)
             conn.create_tags([instance.id],
@@ -90,7 +90,7 @@ class AWS(Providers):
                     end_time=datetime.utcnow().isoformat(),
                     instance_type=instance_properties.type,
                     product_description='Linux/UNIX',
-                    availability_zone=self._region_name)
+                    availability_zone=instance_properties.availability_zone)
         spot_price = sum(price.price for price in prices) / len(prices)
         logging.info('Spot price seems to be: %s' % spot_price)
         return spot_price
@@ -114,7 +114,7 @@ class AWS(Providers):
                     image_id=instance_properties.ami,
                     count=1,
                     instance_type=instance_properties.type,
-                    placement=instance_properties.availabilty_zone)
+                    placement=instance_properties.availability_zone)
         for request in requests:
             request = self.wait_for_fulfill(request)
             instance = self.get_instance_by_id(request.instance_id)

@@ -37,7 +37,8 @@ class AutoScale():
         self.instance_properties = Collection()
         self.instance_properties.ami = cluster['ami']
         self.instance_properties.type = cluster['node_type']
-        self.instance_properties.availabilty_zone = cluster['availabilty_zone']
+        self.instance_properties.availability_zone = \
+                                                cluster['availability_zone']
 
     def run(self):
         logging.info('In run()')
