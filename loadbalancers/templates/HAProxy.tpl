@@ -16,6 +16,6 @@ frontend www *:80
 backend servers
     mode http
     balance roundrobin
-    % for instance in instances['security-group-1']:
+    % for instance in instances:
     server ${ instance.id } ${ instance.private_dns_name }
     % endfor

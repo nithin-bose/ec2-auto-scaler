@@ -55,7 +55,9 @@ class AutoScale():
 
     def _get_instances(self):
         if self.instances is None:
+            logging.info('Instances list seems to have changed. Refreshing...')
             self.instances = self.provider.get_instances(self.security_group)
+            logging.info('Instances list refreshed')
         return self.instances
 
     def _check_cpu_utilization(self):
@@ -86,6 +88,7 @@ class AutoScale():
 
     def _action(self, state):
         if state == State.SCALE_OUT:
+            self.instances = None
             logging.info('Modifying cluster..')
             if self.node_option == 'on-demand':
                 logging.info('Creating on-demand instance...')
@@ -98,6 +101,7 @@ class AutoScale():
             else:
                 raise InvalidPricingOption(self.node_option)
         elif state == State.SCALE_DOWN:
+            self.instances = None
             logging.info('Scaling out cluster.')
             if self.node_option == 'on-demand':
                 logging.info('Removing on-demand instance...')
