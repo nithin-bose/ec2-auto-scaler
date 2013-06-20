@@ -157,7 +157,10 @@ class AWS(Providers):
             if stats:
                 stat_sum += sum(stat['Average'] for stat in stats) / len(stats)
             else:
-                raise ScaleError('Stat semms empty.')
-        avg_cluster_utilization = stat_sum / len(instances)
+                raise ScaleError('Stat seems empty.')
+        try:
+            avg_cluster_utilization = stat_sum / len(instances)
+        except ZeroDivisionError:
+            raise ScaleError('Cluster has no nodes')
         logging.info('Avg cluster utilization is %s' % avg_cluster_utilization)
         return avg_cluster_utilization

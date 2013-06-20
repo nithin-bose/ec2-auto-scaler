@@ -67,6 +67,7 @@ class AutoScale():
         logging.info('In _check_cpu_utilization()')
         instances = self._get_instances()
         instanceCount = len(instances)
+        cpu_utilization = 0
         try:
             cpu_utilization = self.provider.cpu_utilization(instances)
         except ScaleError:
