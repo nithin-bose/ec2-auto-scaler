@@ -37,6 +37,7 @@ class AutoScale():
         self.instance_properties = Collection()
         self.instance_properties.ami = cluster['ami']
         self.instance_properties.type = cluster['node_type']
+        self.instance_properties.key_pair_name = cluster['node_key_pair_name']
         self.instance_properties.security_group = self.security_group
         self.instance_properties.availability_zone = \
                                                 cluster['availability_zone']
