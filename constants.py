@@ -1,6 +1,9 @@
+import os
+
 APPLICATION_NAME = 'ec2-auto-scaler 0.1'
-DEFAULT_CONFIG_PATH = 'example/config.ini'
+PROJECT_ROOT = os.path.realpath(os.path.dirname(__file__))
+DEFAULT_CONFIG_PATH = os.path.join(PROJECT_ROOT, 'example/config.ini')
 DEFAULT_PROVIDER = 'aws'
 NON_CLUSTER_SECTIONS = ['main', 'aws', 'haproxy']
 LOG_FORMAT = '%(asctime)s - %(levelname)s:%(name)s:%(message)s'
-LOG_PATH = 'ec2-auto-scaler.log'
+LOG_PATH = os.path.join(PROJECT_ROOT, 'ec2-auto-scaler.log')
