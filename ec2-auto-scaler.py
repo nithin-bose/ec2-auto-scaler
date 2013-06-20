@@ -2,8 +2,9 @@ import argparse
 import logging
 import traceback
 from autoscaling import AutoScale
-from constants import APPLICATION_NAME, DEFAULT_CONFIG_PATH
+from constants import APPLICATION_NAME, DEFAULT_CONFIG_PATH, LOG_FORMAT
 from configuration import Configuration
+logging.basicConfig(format=LOG_FORMAT, level=logging.DEBUG)
 
 
 def main():
