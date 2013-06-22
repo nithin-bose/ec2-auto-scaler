@@ -1,6 +1,7 @@
 import argparse
 import logging
 import traceback
+import time
 
 from libs.YapDi import yapdi
 
@@ -38,12 +39,15 @@ def main():
             logging.info('Parsing configuration')
             configuration = Configuration(args.config)
             logging.info('Fetching configuration details')
+            scaling_interval = configuration.get_scaling_interval()
             clusters = configuration.get_cluster_details()
-            for cluster in clusters:
-                logging.info('Initializing auto scale')
-                auto_scale = AutoScale(cluster)
-                logging.info('Running auto scale')
-                auto_scale.run()
+            while True:
+                for cluster in clusters:
+                    logging.info('Initializing auto scale')
+                    auto_scale = AutoScale(cluster)
+                    logging.info('Running auto scale')
+                    auto_scale.run()
+                time.sleep(scaling_interval)
         elif retcode == yapdi.INSTANCE_ALREADY_RUNNING:
             print("Already running")
         elif retcode == yapdi.INSTANCE_NOT_RUNNING:

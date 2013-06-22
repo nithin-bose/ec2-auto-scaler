@@ -77,3 +77,7 @@ class Configuration():
                 clusters.append(cluster)
 
         return clusters
+
+    def get_scaling_interval(self):
+        scaling_interval = self.parsed_config['main']['scaling_interval']
+        return int(scaling_interval)
