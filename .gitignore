@@ -3,7 +3,6 @@
 *.nja
 bin
 include
-lib*
 build
 templates/testing.tpl
 local
