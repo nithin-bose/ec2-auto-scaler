@@ -28,14 +28,14 @@ def main():
     daemon = yapdi.Daemon(DAEMON_PID_FILE)
     if args.command in ['start', 'restart']:
         if args.command == 'start':
-            retcode = daemon.daemonize()
             print('Starting application...')
+            retcode = daemon.daemonize()
         elif args.command == 'restart':
-            retcode = daemon.restart()
             print('Restarting application...')
+            retcode = daemon.restart()
 
         if retcode == yapdi.OPERATION_SUCCESSFUL:
-            print('Running')
+            logging.info('Running as daemon...')
             logging.info('Parsing configuration')
             configuration = Configuration(args.config)
             logging.info('Fetching configuration details')
@@ -43,10 +43,14 @@ def main():
             clusters = configuration.get_cluster_details()
             while True:
                 for cluster in clusters:
-                    logging.info('Initializing auto scale')
-                    auto_scale = AutoScale(cluster)
-                    logging.info('Running auto scale')
-                    auto_scale.run()
+                    try:
+                        logging.info('Initializing auto scale')
+                        auto_scale = AutoScale(cluster)
+                        logging.info('Running auto scale')
+                        auto_scale.run()
+                    except:
+                        traceback.print_exc(file=open(LOG_PATH, "a"))
+                logging.info('Waiting %ss till next run...' % scaling_interval)
                 time.sleep(scaling_interval)
         elif retcode == yapdi.INSTANCE_ALREADY_RUNNING:
             print("Already running")
@@ -75,8 +79,6 @@ def main():
 if __name__ == '__main__':
     try:
         logging.getLogger().setLevel(logging.INFO)
-        logging.info('*** Application Start ***')
         main()
-        logging.info('*** Application End ***')
     except Exception as e:
-        traceback.print_exc()
+        traceback.print_exc(file=open(LOG_PATH, "a"))
