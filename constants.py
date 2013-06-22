@@ -8,3 +8,4 @@ NON_CLUSTER_SECTIONS = ['main', 'aws', 'haproxy']
 LOG_FORMAT = '%(asctime)s - %(levelname)s:%(name)s:%(message)s'
 RUN_FOLDER = os.path.join(PROJECT_ROOT, 'run')
 LOG_PATH = os.path.join(RUN_FOLDER, 'daemon.log')
+DAEMON_PID_FILE = os.path.join(RUN_FOLDER, 'daemon.pid')
