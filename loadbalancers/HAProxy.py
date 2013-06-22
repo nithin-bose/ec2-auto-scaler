@@ -1,15 +1,18 @@
+import os
 import logging
 import subprocess
 from mako.template import Template
 from loadbalancers import LoadBalancers
 from errors import InstancesNotSetError
+from constants import PROJECT_ROOT, RUN_FOLDER
 
 
 class HAProxy(LoadBalancers):
 
-    CONFIG_TPL_PATH = './templates/HAProxy.tpl'
-    CONFIG_FILE_PATH = 'example/haproxy.cfg'
-    LB_PID_FILE_PATH = '/var/run/haproxy.pid'
+    CONFIG_TPL_PATH = os.path.join(PROJECT_ROOT,
+                                        'loadbalancers/templates/HAProxy.tpl')
+    CONFIG_FILE_PATH = os.path.join(PROJECT_ROOT, 'example/haproxy.cfg')
+    LB_PID_FILE_PATH = os.path.join(RUN_FOLDER, 'haproxy.pid')
     LB_EXECUTABLE = 'haproxy'
 
     def __init__(self, config_template=None, config_file=None, pIdFile=None,
