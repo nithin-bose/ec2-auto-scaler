@@ -3,6 +3,7 @@ import ConfigParser
 from constants import NON_CLUSTER_SECTIONS
 from providers.aws import AWS
 from loadbalancers.HAProxy import HAProxy
+from errors import UnknownProviderError, UnknownLoadBalancerError
 
 
 class Configuration():
@@ -28,23 +29,17 @@ class Configuration():
                                         #self.parsed_config['worker']['az']:
             #raise ConfigFileError
 
-    def get_config_details(self):
-        config_details = {}
-        clusters = []
-        for index, cluster in self.parsed_config.iteritems():
-            if index not in NON_CLUSTER_SECTIONS:
-                clusters.append(cluster)
-                region_name = cluster['region_name']
-                break
-
-        config_details['clusters'] = clusters
-
+    def _get_provider(self, cluster):
         if self.parsed_config['main']['provider'] == 'aws':
             aws_access_key_id = self.parsed_config['aws']['access_key_id']
             secret_access_key = self.parsed_config['aws']['secret_access_key']
-            config_details['provider'] = AWS(aws_access_key_id,
-                                                secret_access_key, region_name)
+            region_name = cluster['region_name']
+            provider = AWS(aws_access_key_id, secret_access_key, region_name)
+        else:
+            raise UnknownProviderError()
+        return provider
 
+    def _get_load_balancer(self):
         if self.parsed_config['main']['load_balancer'] == 'haproxy':
             try:
                 executable = self.parsed_config['haproxy']['executable']
@@ -66,6 +61,19 @@ class Configuration():
             except:
                 config_tpl = None
 
-            config_details['load_balancer'] = HAProxy(config_tpl,
-                                            config_file, pid_file, executable)
-        return config_details
+            load_balancer = HAProxy(config_tpl, config_file, pid_file,
+                                                                    executable)
+        else:
+            raise UnknownLoadBalancerError()
+        return load_balancer
+
+    def get_cluster_details(self):
+        clusters = []
+        load_balancer = self._get_load_balancer()
+        for index, cluster in self.parsed_config.iteritems():
+            if index not in NON_CLUSTER_SECTIONS:
+                cluster['provider'] = self._get_provider(cluster)
+                cluster['load_balancer'] = load_balancer
+                clusters.append(cluster)
+
+        return clusters

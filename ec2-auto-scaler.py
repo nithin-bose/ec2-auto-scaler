@@ -38,10 +38,10 @@ def main():
             logging.info('Parsing configuration')
             configuration = Configuration(args.config)
             logging.info('Fetching configuration details')
-            config_details = configuration.get_config_details()
-            for cluster in config_details['clusters']:
+            clusters = configuration.get_cluster_details()
+            for cluster in clusters:
                 logging.info('Initializing auto scale')
-                auto_scale = AutoScale(cluster, config_details)
+                auto_scale = AutoScale(cluster)
                 logging.info('Running auto scale')
                 auto_scale.run()
         elif retcode == yapdi.INSTANCE_ALREADY_RUNNING:

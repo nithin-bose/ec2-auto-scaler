@@ -17,15 +17,15 @@ class Collection():
 
 
 class AutoScale():
-    def __init__(self, cluster, config_details):
+    def __init__(self, cluster):
         self.scale_out_threshold = float(cluster['scale_out_threshold'])
         self.scale_down_ratio = float(cluster['scale_down_ratio'])
         self.node_option = cluster['node_option']
         self.min_nodes = float(cluster['min_nodes'])
         self.max_nodes = float(cluster['max_nodes'])
         self.security_group = cluster['security_group']
-        self.provider = config_details['provider']
-        self.load_balancer = config_details['load_balancer']
+        self.provider = cluster['provider']
+        self.load_balancer = cluster['load_balancer']
         self.instances = None
         self.health_check_url = None
         try:

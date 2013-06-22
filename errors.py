@@ -60,3 +60,19 @@ class SpotRequestTimeOut(Exception):
 
     def __str__(self):
         return self.message
+
+
+class UnknownProviderError(Exception):
+    def __init__(self):
+        self.message = 'Unknown provider specified in config file.'
+
+    def __str__(self):
+        return self.message
+
+
+class UnknownLoadBalancerError(Exception):
+    def __init__(self):
+        self.message = 'Unknown load balancer specified in config file.'
+
+    def __str__(self):
+        return self.message
