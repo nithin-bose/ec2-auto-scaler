@@ -15,12 +15,36 @@ Installation
 Configuration
 ---
 
-By default ec2-auto-scaler uses the example/config.ini file or use `--config` option to specify the config file.
+By default ec2-auto-scaler uses the `example/config.ini` file or use `--config` option to specify the config file.
 
 Usage
 ---
 
-ec2-auto-scaler was designed to be run from the load balancer itself as a cron job. 
-Ideally it would be run every minute.
+ec2-auto-scaler is designed to run as a daemon from the load balancer itself. 
 
-    $ python ec2-auto-scaler.py
+To start daemon:
+
+    $ python ec2-auto-scaler.py start
+    
+To stop daemon:
+
+    $ python ec2-auto-scaler.py stop
+    
+To restart daemon:
+
+    $ python ec2-auto-scaler.py restart
+
+To know the status:
+
+    $ python ec2-auto-scaler.py status
+
+
+`scaling_interval` in the `main` section of the config file can be used to set the freequency of scaling checks.  
+
+For example, to run every 5 minutes, set `scaling_interval` as follows:
+
+    [main]
+    scaling_interval: 300
+
+    
+ 
