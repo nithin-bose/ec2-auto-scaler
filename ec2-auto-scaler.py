@@ -42,7 +42,11 @@ def main():
             scaling_interval = configuration.get_scaling_interval()
             clusters = configuration.get_cluster_details()
             while True:
+                logging.info('Iterating clusters...')
+                clusterCount = 0
                 for cluster in clusters:
+                    clusterCount += 1
+                    logging.info('Processing cluster %s...' % clusterCount)
                     try:
                         logging.info('Initializing auto scale')
                         auto_scale = AutoScale(cluster)
@@ -50,6 +54,8 @@ def main():
                         auto_scale.run()
                     except:
                         traceback.print_exc(file=open(LOG_PATH, "a"))
+                    logging.info('Processed cluster %s.' % clusterCount)
+                logging.info('All clusters processed')
                 logging.info('Waiting %ss till next run...' % scaling_interval)
                 time.sleep(scaling_interval)
         elif retcode == yapdi.INSTANCE_ALREADY_RUNNING:
